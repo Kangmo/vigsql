@@ -23,9 +23,6 @@ object TestSQL extends ToySQL {
 		      FROM ('emp INNER_JOIN 'dept )
 		      ORDER_BY ('eno ASC))
 		
-		EXEC (SELECT ('eno, 'name) FROM 'emp ORDER_BY ('eno ASC)) 
-		EXEC (SELECT ('eno, 'name) FROM 'emp ORDER_BY ('eno DESC)) 
-
 	  	EXEC (DELETE FROM 'emp WHERE 'eno < 3) 
 	  	EXEC (SELECT ('eno, 'name) FROM 'emp WHERE 'eno === 4)
 	  	
