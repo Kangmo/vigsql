@@ -3,6 +3,7 @@ vigsql
 
 VigSQL embedded SQL interface for Scala.
 
+<pre>
 object TestSQL extends ToySQL {
 	def main(args:Array[String]) = {
 		EXEC (CREATE TABLE 'dept ('dno INTEGER, 'dname CHAR(10)))
@@ -33,3 +34,4 @@ object TestSQL extends ToySQL {
 	  	EXEC (DROP TABLE 'dept)
 	}
 }
+</pre>
