@@ -1,4 +1,4 @@
-vigsql
+VigSQL
 ======
 
 VigSQL provides embedded SQL interface for Scala.
