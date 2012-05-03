@@ -23,7 +23,7 @@ object TestSQL extends ToySQL {
 		      FROM ('emp INNER_JOIN 'dept )
 		      ORDER_BY ('eno ASC))
 		
-	  	EXEC (DELETE FROM 'emp WHERE 'eno < 3) 
+	  	EXEC (DELETE FROM 'emp WHERE 'eno &lt; 3) 
 	  	EXEC (SELECT ('eno, 'name) FROM 'emp WHERE 'eno === 4)
 	  	
 	  	EXEC (DELETE FROM 'emp)
