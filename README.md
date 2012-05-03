@@ -1,7 +1,7 @@
 vigsql
 ======
 
-VigSQL embedded SQL interface for Scala.
+VigSQL provides embedded SQL interface for Scala.
 
 <pre>
 object TestSQL extends ToySQL {
