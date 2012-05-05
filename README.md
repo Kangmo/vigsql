@@ -17,6 +17,8 @@ object TestSQL extends ToySQL {
 		EXEC (INSERT INTO 'emp VALUES(3, 100, "kumdory"))
 		EXEC (INSERT INTO 'emp VALUES(4, 100, "wegra"))
 		
+		EXEC (SELECT ('dname) FROM 'dept GROUP_BY ('dname) )
+		
 		EXEC (SELECT ('name) FROM 'emp WHERE ('dno IN (SELECT ('dno) FROM 'dept)) )	
 		
 		EXEC (SELECT ('eno, 'dname, 'name) 
