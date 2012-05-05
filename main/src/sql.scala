@@ -24,6 +24,15 @@ class ToySQL {
 		def > (rhs:SqlValue) : Boolean
 		def >= (rhs:SqlValue) : Boolean
 		def <= (rhs:SqlValue) : Boolean
+/*	case classes implement 'equals'...no need to define ours.	
+		override def equals(any:Any) : Boolean = {
+			if ( any.isInstanceOf[SqlValue] ) {
+				val another = any.asInstanceOf[SqlValue];
+				return this === another;
+			}
+			return false;
+		}
+*/		
 	}
 	case class BooleanValue(value:Boolean) extends SqlValue {
 		def === (rhs:SqlValue) = rhs match {
@@ -143,11 +152,11 @@ class ToySQL {
 			if ( groupFieldNames != null ) {
 				if ( projection == null )
 					throw new SyntaxError("Missing projection list on a query with GROUP BY clause")
-/*
+				
 				val groupigTable = GroupingTable(fields, filteredRows );
 				groupigTable.groupRows(groupFieldNames, projection);
 				return groupigTable.select(projection, null);
-*/
+
 				throw new SyntaxError("GROUP BY feature is not supported yet.")
 			}
 
@@ -178,45 +187,129 @@ class ToySQL {
 		  }
 		).toArray
 	}
-/*
+
 	case class GroupingTable(inputFields:Array[FieldDef], inputRows:ListBuffer[TableRow]) {
 	    assert(inputFields != null)
 	    assert(inputRows   != null)
+	    
+	    // BUGBUG : duplicate code with Table case class.
+		private val fieldIndexMap = HashMap[Symbol,Int]();
+		private var i : Int = 0
+		inputFields.foreach {
+			fd => fieldIndexMap(fd.name) = i; i+=1
+		}
 
-	    case class GroupKey {
+	    case class GroupKey(var groupKeys : Array[FieldValue]) {
 	    	//kept for {groupFieldNames}
-	    	var groupKeys : Array[SqlValue]
+	    	
 	    	// need to define comparison operators for GroupKey
+	    	override def hashCode : Int = {
+	    	  	var sum = 0
+	    	  	// ASSUME : FieldValue should be a case class, so hashCode is implemented automatically.
+	    		groupKeys.foreach( sum += _.hashCode() )
+	    		sum
+	    	}
+	    	// See if all SqlValues in the groupKeys are exactly same!
+	    	override def equals(any:Any) : Boolean = {
+	    		if ( any.isInstanceOf[GroupKey] )
+	    		{
+	    			val another = any.asInstanceOf[GroupKey];
+	    			if ( groupKeys.size == another.groupKeys.size) 
+	    			{
+	    				for(my <- groupKeys; other <- another.groupKeys ) {
+				  	    	// ASSUME : FieldValue should be a case class, so equals is implemented automatically.
+	    					if ( my != other)
+	    					  return false;
+	    				}
+	    				return true;
+	    			}
+	    		}
+	    		return false;
+	    	}
 	    }
 	    case class FieldKeepings {
-	    	var minValue : SqlValue 
-	    	var maxValue : SqlValue
-	    	var sumValue : SqlValue
-	    	var rowCount : BigInt
+//	    	var minValue : SqlValue 
+//	    	var maxValue : SqlValue
+//	    	var sumValue : SqlValue
+	    	
 	    }
+	    
 	    case class GroupKeepings {
 	    	// kept for each field in {inputFields} - {groupFieldNames}
-	    	var fieldKeepings : Array[FieldKeepings]
+	    	var fieldKeepings = Array[FieldKeepings]() 
+	    	private var rowCount : BigInt = 0
+	    	def incRowCount() { rowCount +=1 }
 	    }
 
+	    var groupedFieldNames : Array[Symbol] = null 
 	    val groupedMap = HashMap[GroupKey, GroupKeepings]()
 		
+	    def getGroupKey(row : TableRow, groupFieldNames:Array[Symbol]) = {
+	    	GroupKey( groupFieldNames 
+	    					map { fieldIndexMap(_) } // convert field names to to field indexes 
+	    					map { row.getFieldValue(_) } // convert field indexes to SqlValue of the field in the row 
+	    					toArray ) 
+	    }
+	    
+	    def updateGroupKeepings(groupKeepings : GroupKeepings, row : TableRow, projections:Array[Symbol]) {
+	    	groupKeepings.incRowCount()
+	    }
+	    
+	    def getGroupKeepings(groupKey : GroupKey ) = {
+	    	var groupKeepings : GroupKeepings = null
+	    	if (groupedMap.contains(groupKey)) {
+	    		groupKeepings = groupedMap(groupKey)
+	    	}
+	    	else {
+	    		groupKeepings = GroupKeepings()
+	    		groupedMap(groupKey) = groupKeepings;
+	    	}
+	    	groupKeepings
+	    }
+	    
+	    // Populate groupedMap based on the groupFields and projections
 	    def groupRows(groupFieldNames:Array[Symbol], projections:Array[Symbol]) {
 		    assert(groupFieldNames != null)
 		    assert(projections != null)
+
+		    // Initialize the grouped result set
+		    groupedFieldNames = groupFieldNames
+		    groupedMap.clear()
 		    
-		    val gFields = ArrayBuffer[FieldDef]()
-			//val groupedTable = Table(gFields.toArray);
-		//    val groupedMap = HashMap[GroupKey,]
-		//    groupedTable.setRows(sortedMap )
-			//groupedTable
+		    for (row <- inputRows) {
+		    	val groupKey = getGroupKey(row, groupFieldNames)
+		    	val groupKeepings = getGroupKeepings(groupKey)
+		    	updateGroupKeepings(groupKeepings, row, projections)
+		    }
 		}
 		
+	    // Populate grouped rows based on groupedMap applying projection and HAVING predicate.
 		def select(projection:Array[Symbol], havingPred:AbstractPred) : ListBuffer[TableRow] = {
-			ListBuffer[TableRow]()
+		  	val groupedFieldIndexMap = HashMap[Symbol,Int]();
+		  	var i : Int = 0
+		  	groupedFieldNames.foreach {
+		  		fname => groupedFieldIndexMap(fname) = i; i+=1
+		  	}
+		  	// HAVING predicate is not supported yet
+		  	assert(havingPred == null)
+		  	
+		  	val fieldIndexes = projection.map( groupedFieldIndexMap(_) )
+			val projectedRows = ListBuffer[TableRow]();
+				for( group <- groupedMap ) {
+					val groupKey = group._1
+					val groupKeepings = group._2
+					
+					val projRow = ArrayBuffer[FieldValue]()
+					for ( fi <- fieldIndexes ) {
+						projRow += groupKey.groupKeys(fi)
+					}
+					projectedRows += TableRow(projRow.toArray)
+				}
+
+			projectedRows
 		}
 	}
-*/
+
 	private val tableMap = HashMap[Symbol,Table]();
 
 	abstract class AbstractExpr {
@@ -366,14 +459,14 @@ class ToySQL {
 		}
 		
 		object GROUP_BY {
-			object BY {
+//			object BY {
 				def apply(fields: Symbol*) = {
 					val fnamesArray = fields.toArray
 					if ( fnamesArray.size > 1 )
 						throw new SyntaxError("GROUP BY clause supports only one field");
 					groupFieldNames = fnamesArray; self
 				}
-			}
+//			}
 		}
 	}
 	case class DeleteFromStmt(tname:Symbol) extends FilterableStmt
@@ -489,6 +582,8 @@ object TestSQL extends ToySQL {
 		EXEC (INSERT INTO 'emp VALUES(2, 200, "jdlee"))
 		EXEC (INSERT INTO 'emp VALUES(3, 100, "kumdory"))
 		EXEC (INSERT INTO 'emp VALUES(4, 100, "wegra"))
+
+		EXEC (SELECT ('dname) FROM 'dept GROUP_BY ('dname) )
 		
 		EXEC (SELECT ('name) FROM 'emp WHERE ('dno IN (SELECT ('dno) FROM 'dept)) )	
 		
@@ -505,6 +600,7 @@ object TestSQL extends ToySQL {
 	  	EXEC (SELECT ('eno, 'name) FROM 'emp WHERE 'eno === 4)
 	  	
 	  	EXEC (DELETE FROM 'emp)
+	  	
 	  	EXEC (DROP TABLE 'emp)
 	  	EXEC (DROP TABLE 'dept)
 	}
