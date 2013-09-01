@@ -34,3 +34,6 @@ object TestSQL extends ToySQL {
 	}
 }
 </pre>
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/Kangmo/vigsql/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
