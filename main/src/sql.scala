@@ -1,9 +1,7 @@
 /**
  * ToySQL by Kangmo Kim at ThankyouSoft
  * 
- * Dual License. 
- * 1) GPL v2 ( Free. If you can open your source code. )
- * 2) Commercial License ( Contact me by kangmo.kim@ThankyouSoft.com. If you don't want to open your source code. ) 
+ * Apache v2 License.
  */
 import scala.collection.mutable.HashMap;
 import scala.collection.mutable.ArrayBuffer;
