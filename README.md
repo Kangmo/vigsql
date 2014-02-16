@@ -1,7 +1,7 @@
 VigSQL
 ======
 
-VigSQL provides embedded SQL interface for Scala.
+VigSQL provides embedded SQL interface for Scala. Apache v2 license.
 
 <pre>
 object TestSQL extends ToySQL {
